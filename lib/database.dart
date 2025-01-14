@@ -1,0 +1,20 @@
+import 'package:drift/drift.dart';
+import 'package:drift_flutter/drift_flutter.dart';
+
+part 'database.g.dart';
+
+class BulletNote extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get content => text()();
+}
+
+@DriftDatabase(tables: [BulletNote])
+class AppDatabase extends _$AppDatabase {
+  // After generating code, this class needs to define a `schemaVersion` getter
+  // and a constructor telling drift where the database should be stored.
+  // These are described in the getting started guide: https://drift.simonbinder.eu/setup/
+  AppDatabase() : super(driftDatabase(name: 'forgor'));
+
+  @override
+  int get schemaVersion => 1;
+}

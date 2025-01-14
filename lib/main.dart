@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:forgor/database.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // final database = AppDatabase();
+
   runApp(const MyApp());
 }
 
