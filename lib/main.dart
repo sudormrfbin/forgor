@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forgor/repositories/database.dart';
 import 'package:forgor/services/bullet_service.dart';
+import 'package:forgor/util/text_editing_controller.dart';
 import 'package:signals/signals_flutter.dart';
 
 void main() {
@@ -70,29 +71,22 @@ class Bullet extends StatefulWidget {
 }
 
 class _BulletState extends State<Bullet> {
-  late final controller = TextEditingController(text: widget.initData.content);
-  Timer? _debounce;
-
-  @override
-  void initState() {
-    super.initState();
-
-    controller.addListener(_onChanged);
-  }
+  // TODO: Only insert the character when there's no text
+  // https://stackoverflow.com/a/71803796/7115678
+  late final controller = DebouncedTextEditingController(
+    text: widget.initData.content,
+    onDebouncedChange: _onChange,
+  );
 
   @override
   void dispose() {
-    _debounce?.cancel();
     controller.dispose();
     super.dispose();
   }
 
-  _onChanged() {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 700), () async {
-      final bullet = widget.initData.copyWith(content: controller.text);
-      await bulletServiceRef().updateNote(bullet);
-    });
+  void _onChange(String text) async {
+    final bullet = widget.initData.copyWith(content: text);
+    await bulletServiceRef().updateNote(bullet);
   }
 
   @override
