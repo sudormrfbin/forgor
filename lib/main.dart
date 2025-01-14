@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:forgor/database.dart';
+
+late final AppDatabase database;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // final database = AppDatabase();
+  database = AppDatabase();
 
   runApp(const MyApp());
 }
@@ -25,8 +29,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  Future<List<BulletNoteData>> bulletNoteFuture = database.allBulletNotes;
 
   @override
   Widget build(BuildContext context) {
@@ -35,20 +46,75 @@ class MyHomePage extends StatelessWidget {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Forgor'),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await database.newBulletNote();
+          setState(() {
+            bulletNoteFuture = database.allBulletNotes;
+          });
+        },
+        child: Icon(Icons.add),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Bullet(),
+        child: FutureBuilder<List<BulletNoteData>>(
+          future: bulletNoteFuture,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return CircularProgressIndicator();
+            }
+            print(snapshot.data!.length);
+
+            return Column(
+              children: [
+                for (final bullet in snapshot.data!) Bullet(bullet),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 }
 
-class Bullet extends StatelessWidget {
-  const Bullet({super.key});
+class Bullet extends StatefulWidget {
+  final BulletNoteData initData;
+  const Bullet(this.initData, {super.key});
+
+  @override
+  State<Bullet> createState() => _BulletState();
+}
+
+class _BulletState extends State<Bullet> {
+  late final controller = TextEditingController(text: widget.initData.content);
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+
+    controller.addListener(_onChanged);
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    controller.dispose();
+    super.dispose();
+  }
+
+  _onChanged() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 700), () async {
+      final bullet = widget.initData.copyWith(content: controller.text);
+      await database.updateBulletNote(bullet);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       onSubmitted: (text) => print('enter pressed'),
       textInputAction: TextInputAction.newline,
       decoration: InputDecoration(

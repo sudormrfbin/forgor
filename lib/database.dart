@@ -17,4 +17,14 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  Future<List<BulletNoteData>> get allBulletNotes => select(bulletNote).get();
+
+  Future<void> newBulletNote() async {
+    await into(bulletNote).insert(BulletNoteCompanion.insert(content: ""));
+  }
+
+  Future<void> updateBulletNote(BulletNoteData bullet) async {
+    await update(bulletNote).replace(bullet);
+  }
 }
