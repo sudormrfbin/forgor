@@ -27,4 +27,8 @@ class AppDatabase extends _$AppDatabase {
   Future<void> updateBulletNote(BulletNoteData bullet) async {
     await update(bulletNote).replace(bullet);
   }
+
+  Future<void> deleteBulletNote(BulletNoteData bullet) async {
+    await delete(bulletNote).delete(bullet);
+  }
 }
