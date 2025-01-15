@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   drift: ^2.23.1
   drift_flutter: ^0.2.4
+  signals: ^6.0.2
+  lite_ref: ^0.8.1
 
 dev_dependencies:
   flutter_test:

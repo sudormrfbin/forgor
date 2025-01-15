@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:lite_ref/lite_ref.dart';
 
 part 'database.g.dart';
+
+final dbRef = Ref.singleton(() => AppDatabase());
 
 class BulletNote extends Table {
   IntColumn get id => integer().autoIncrement()();

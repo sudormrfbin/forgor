@@ -1,14 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:forgor/database.dart';
-
-late final AppDatabase database;
+import 'package:forgor/repositories/database.dart';
+import 'package:forgor/services/bullet_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-
-  database = AppDatabase();
 
   runApp(const MyApp());
 }
@@ -37,7 +34,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<List<BulletNoteData>> bulletNoteFuture = database.allBulletNotes;
+  Future<List<BulletNoteData>> bulletNoteFuture = bulletServiceRef().allNotes();
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await database.newBulletNote();
+          await bulletServiceRef().newNote();
           setState(() {
-            bulletNoteFuture = database.allBulletNotes;
+            bulletNoteFuture = bulletServiceRef().allNotes();
           });
         },
         child: Icon(Icons.add),
@@ -107,7 +104,7 @@ class _BulletState extends State<Bullet> {
     if (_debounce?.isActive ?? false) _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 700), () async {
       final bullet = widget.initData.copyWith(content: controller.text);
-      await database.updateBulletNote(bullet);
+      await bulletServiceRef().updateNote(bullet);
     });
   }
 
