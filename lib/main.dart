@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:forgor/repositories/database.dart';
 import 'package:forgor/services/bullet_service.dart';
+import 'package:signals/signals_flutter.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,8 +35,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Future<List<BulletNoteData>> bulletNoteFuture = bulletServiceRef().allNotes();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,31 +43,19 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text('Forgor'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await bulletServiceRef().newNote();
-          setState(() {
-            bulletNoteFuture = bulletServiceRef().allNotes();
-          });
-        },
+        onPressed: () => bulletServiceRef().newNote(),
         child: Icon(Icons.add),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: FutureBuilder<List<BulletNoteData>>(
-          future: bulletNoteFuture,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return CircularProgressIndicator();
-            }
-            print(snapshot.data!.length);
-
-            return Column(
-              children: [
-                for (final bullet in snapshot.data!) Bullet(bullet),
-              ],
-            );
-          },
-        ),
+        child: Watch((context) {
+          final notes = bulletServiceRef().allNotes.value;
+          return notes.map(
+            data: (notes) => Column(children: notes.map(Bullet.new).toList()),
+            error: (error) => Text('$error'),
+            loading: () => CircularProgressIndicator(),
+          );
+        }),
       ),
     );
   }
