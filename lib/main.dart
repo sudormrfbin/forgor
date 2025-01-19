@@ -52,7 +52,10 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Watch((context) {
           final notes = bulletServiceRef().allNotes.value;
           return notes.map(
-            data: (notes) => Column(children: notes.map(Bullet.new).toList()),
+            data: (notes) => Column(
+              key: ValueKey(notes.length),
+              children: notes.map(Bullet.new).toList(),
+            ),
             error: (error) => Text('$error'),
             loading: () => CircularProgressIndicator(),
           );
@@ -71,11 +74,10 @@ class Bullet extends StatefulWidget {
 }
 
 class _BulletState extends State<Bullet> {
-  // TODO: Only insert the character when there's no text
-  // https://stackoverflow.com/a/71803796/7115678
   late final controller = DebouncedTextEditingController(
     text: widget.initData.content,
     onDebouncedChange: _onChange,
+    onBackspaceWhileEmpty: onBackspaceWhileEmpty,
   );
 
   @override
@@ -87,6 +89,10 @@ class _BulletState extends State<Bullet> {
   void _onChange(String text) async {
     final bullet = widget.initData.copyWith(content: text);
     await bulletServiceRef().updateNote(bullet);
+  }
+
+  void onBackspaceWhileEmpty() async {
+    await bulletServiceRef().deleteNote(widget.initData);
   }
 
   @override

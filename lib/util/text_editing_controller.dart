@@ -38,9 +38,9 @@ class DebouncedTextEditingController extends TextEditingController {
     this.debounceDuration = const Duration(milliseconds: 700),
     required this.onDebouncedChange,
     this.onBackspaceWhileEmpty,
-    String text = zeroWidthSpace,
-  })  : contentState = TextState.from(text),
-        super(text: text) {
+    String text = '',
+  })  : contentState = text.isEmpty ? TextState.hasZws : TextState.hasText,
+        super(text: text.isEmpty ? zeroWidthSpace : text) {
     addListener(_onTextChanged);
   }
 
@@ -83,8 +83,15 @@ class DebouncedTextEditingController extends TextEditingController {
       case (TextState.hasZws, TextState.hasText):
         text = trimZeroWidthSpace(text);
         contentState = TextState.hasText;
+      case (TextState.empty, _):
+        assert(
+          false,
+          "invalid state transition for text state: "
+          "previous text should never be empty, it should at least"
+          "have a zero width space character",
+        );
+        contentState = currentTextState;
       default:
-        assert(false, "invalid state transition for text state");
         contentState = currentTextState;
     }
   }
